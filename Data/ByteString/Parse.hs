@@ -35,7 +35,6 @@ import Control.Applicative
 import Control.Monad
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as B
-import qualified Data.ByteString.Unsafe as B
 import Data.Word
 import Prelude hiding (take, takeWhile)
 
@@ -97,6 +96,7 @@ parse :: Parser a -> ByteString -> Result a
 parse p s = runParser p s (\_ msg -> ParseFail msg) (\b a -> ParseOK b a)
 
 ------------------------------------------------------------
+getMore :: Parser ()
 getMore = Parser $ \buf err ok -> ParseMore $ \nextChunk ->
     if B.null nextChunk
         then err buf "EOL: need more data"
@@ -148,24 +148,28 @@ bytes allExpected = consumeEq allExpected
 ------------------------------------------------------------
 
 -- | Take @n bytes from the current position in the stream
+take :: Int -> Parser ByteString
 take n = Parser $ \buf err ok ->
     if B.length buf >= n
         then let (b1,b2) = B.splitAt n buf in ok b2 b1
         else runParser (getMore >> take n) buf err ok
 
 -- | Take bytes while the @predicate hold from the current position in the stream
+takeWhile :: (Word8 -> Bool) -> Parser ByteString
 takeWhile predicate = Parser $ \buf err ok ->
     case B.span predicate buf of
         (_, "")  -> runParser (getMore >> takeWhile predicate) buf err ok
         (b1, b2) -> ok b2 b1
 
 -- | Skip @n bytes from the current position in the stream
+skip :: Int -> Parser ()
 skip n = Parser $ \buf err ok ->
     if B.length buf >= n
         then ok (B.drop n buf) ()
         else runParser (getMore >> skip (n - B.length buf)) B.empty err ok
 
 -- | Skip bytes while the @predicate hold from the current position in the stream
+skipWhile :: (Word8 -> Bool) -> Parser ()
 skipWhile p = Parser $ \buf err ok ->
     case B.span p buf of
         (_, "") -> runParser (getMore >> skipWhile p) B.empty err ok
