@@ -1,5 +1,5 @@
 Name:                bsparse
-Version:             0.0.3
+Version:             0.0.4
 Synopsis:            A simple unassuming parser for bytestring
 Description:         Really trivial parser to get and drop bytes from a bytestring
 License:             BSD3
