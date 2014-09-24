@@ -31,14 +31,20 @@ module Data.ByteString.Parse
     , skip
     , skipWhile
     , skipAll
+    , takeStorable
     ) where
 
 import Control.Applicative
 import Control.Monad
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as B
+import qualified Data.ByteString.Internal as B (toForeignPtr)
 import Data.Word
+import Foreign.Storable (Storable, peekByteOff, sizeOf)
+import Foreign.ForeignPtr (withForeignPtr)
 import Prelude hiding (take, takeWhile)
+
+import System.IO.Unsafe (unsafePerformIO)
 
 -- | Simple parsing result, that represent respectively:
 --
@@ -160,6 +166,16 @@ bytes allExpected = consumeEq allExpected
                                 else err actual errMsg
 
 ------------------------------------------------------------
+
+-- | Take a storable from the current position in the stream
+takeStorable :: Storable d
+             => Parser d
+takeStorable = anyStorable undefined
+  where
+    anyStorable :: Storable d => d -> Parser d
+    anyStorable a = do
+        (fptr, off, _) <- B.toForeignPtr <$> take (sizeOf a)
+        return $ unsafePerformIO $ withForeignPtr fptr $ \ptr -> peekByteOff ptr off
 
 -- | Take @n bytes from the current position in the stream
 take :: Int -> Parser ByteString
