@@ -27,8 +27,10 @@ module Data.ByteString.Parse
     , bytes
     , take
     , takeWhile
+    , takeAll
     , skip
     , skipWhile
+    , skipAll
     ) where
 
 import Control.Applicative
@@ -102,6 +104,18 @@ getMore = Parser $ \buf err ok -> ParseMore $ \nextChunk ->
         then err buf "EOL: need more data"
         else ok (B.append buf nextChunk) ()
 
+getAll :: Parser ()
+getAll = Parser $ \buf err ok -> ParseMore $ \nextChunk ->
+    if B.null nextChunk
+        then ok buf ()
+        else runParser getAll (B.append buf nextChunk) err ok
+
+flushAll :: Parser ()
+flushAll = Parser $ \buf err ok -> ParseMore $ \nextChunk ->
+    if B.null nextChunk
+        then ok buf ()
+        else runParser getAll B.empty err ok
+
 ------------------------------------------------------------
 
 -- | Get the next byte from the parser
@@ -161,6 +175,13 @@ takeWhile predicate = Parser $ \buf err ok ->
         (_, "")  -> runParser (getMore >> takeWhile predicate) buf err ok
         (b1, b2) -> ok b2 b1
 
+-- | Take the remaining bytes from the current position in the stream
+takeAll :: Parser ByteString
+takeAll = Parser $ \buf err ok ->
+    runParser (getAll >> returnBuffer) buf err ok
+  where
+    returnBuffer = Parser $ \buf _ ok -> ok B.empty buf
+
 -- | Skip @n bytes from the current position in the stream
 skip :: Int -> Parser ()
 skip n = Parser $ \buf err ok ->
@@ -174,3 +195,7 @@ skipWhile p = Parser $ \buf err ok ->
     case B.span p buf of
         (_, "") -> runParser (getMore >> skipWhile p) B.empty err ok
         (_, b2) -> ok b2 ()
+
+-- | Skip all the remaining bytes from the current position in the stream
+skipAll :: Parser ()
+skipAll = Parser $ \buf err ok -> runParser flushAll buf err ok
