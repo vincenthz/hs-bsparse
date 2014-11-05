@@ -49,7 +49,7 @@ import System.IO.Unsafe (unsafePerformIO)
 -- | Simple parsing result, that represent respectively:
 --
 -- * failure: with the error message
--- 
+--
 -- * continuation: that need for more input data
 --
 -- * success: the remaining unparsed data and the parser value
@@ -89,7 +89,7 @@ instance Applicative Parser where
 instance Alternative Parser where
     empty = fail "Parser.Alternative.empty"
     (<|>) = mplus
-    
+
 -- | Run a parser on an @initial ByteString.
 --
 -- If the Parser need more data than available, the @feeder function
@@ -139,7 +139,7 @@ byte :: Word8 -> Parser ()
 byte w = Parser $ \buf err ok ->
     case B.uncons buf of
         Nothing      -> runParser (getMore >> byte w) buf err ok
-        Just (c1,b2) | c1 == w   -> ok b2 () 
+        Just (c1,b2) | c1 == w   -> ok b2 ()
                      | otherwise -> err buf ("byte " ++ show w ++ " : failed")
 
 -- | Parse a sequence of bytes from current position
