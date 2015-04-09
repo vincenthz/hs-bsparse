@@ -22,6 +22,7 @@ module Data.ByteString.Parse
     , parse
     , parseFeed
     -- * Parser methods
+    , isEndOfBuffer
     , byte
     , anyByte
     , bytes
@@ -121,6 +122,11 @@ flushAll = Parser $ \buf err ok -> ParseMore $ \nextChunk ->
     if B.null nextChunk
         then ok buf ()
         else runParser getAll B.empty err ok
+
+------------------------------------------------------------
+
+isEndOfBuffer :: Parser Bool
+isEndOfBuffer = Parser $ \buf _ ok -> ok buf (B.null buf)
 
 ------------------------------------------------------------
 
