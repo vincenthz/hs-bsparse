@@ -26,15 +26,15 @@ Library
   ghc-options:       -Wall -fwarn-tabs
   default-language:  Haskell2010
 
---Test-Suite test-bsparse
---  type:              exitcode-stdio-1.0
---  hs-source-dirs:    tests
---  Main-is:           Tests.hs
---  Build-Depends:     base >= 3 && < 5
---                   , mtl
---                   , tasty
---                   , tasty-quickcheck2
---                   , tasty-hunit
---                   , bsparse
---  ghc-options:       -Wall -fno-warn-orphans -fno-warn-missing-signatures
---  default-language:  Haskell2010
+Test-Suite test-bsparse
+  type:              exitcode-stdio-1.0
+  hs-source-dirs:    tests
+  Main-is:           Tests.hs
+  Build-Depends:     base >= 3 && < 5
+                   , bytestring
+                   , mtl
+                   , tasty
+                   , tasty-hunit
+                   , bsparse
+  ghc-options:       -Wall -fno-warn-orphans -fno-warn-missing-signatures
+  default-language:  Haskell2010
