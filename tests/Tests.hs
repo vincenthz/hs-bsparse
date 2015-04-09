@@ -32,6 +32,8 @@ refTestsOk = testGroup "tests that must always pass"
     , testParserOk "bytes" $ (bytes "haskell", "haskell rocks", ParseOK " rocks" ())
     , testParserOk "anyByte >> bytes" $ (anyByte *> bytes "askell", "haskell rocks", ParseOK " rocks" ())
     , testParserOk "take" $ (BP.take 7, "haskell rocks", ParseOK " rocks" "haskell")
+    , testParserOk "EOB"  $ (isEndOfBuffer >>= \b -> if b then return 0x42 else anyByte, "A", ParseOK "" 0x41)
+    , testParserOk "EOB"  $ (isEndOfBuffer >>= return . show, "", ParseOK "" "True")
     ]
 
 tests = testGroup "bsparse: Unit test"
